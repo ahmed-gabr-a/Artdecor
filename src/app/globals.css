@@ -1,0 +1,72 @@
+@import "tailwindcss";
+
+@theme {
+  /* Minimalist Light Theme Palette */
+  --color-gold: #C0A06B;
+  /* Muted Gold/Bronze */
+  --color-gold-light: #E0CFA8;
+  --color-gold-dark: #8F7242;
+
+  --color-black-rich: #1A1A1A;
+  /* Dark Charcoal for Text */
+  --color-charcoal: #2A2A2A;
+  /* Soft Black */
+  --color-creme: #F9F8F4;
+  /* Clean Off-White Background */
+  --color-beige: #EBE9E1;
+  /* Secondary Background */
+
+  --font-serif: var(--font-playfair-display);
+  --font-sans: var(--font-lato);
+}
+
+:root {
+  --background: #F9F8F4;
+  /* Light Mode Background */
+  --foreground: #1A1A1A;
+  /* Dark Text */
+
+  /* Retain variable names but update values for light theme compatibility where used directly */
+  --gold: #C0A06B;
+  --gold-light: #E0CFA8;
+  --gold-dark: #8F7242;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-lato), sans-serif;
+  line-height: 1.6;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-playfair-display), serif;
+  font-weight: 300;
+  /* Lighter weight for elegance */
+  letter-spacing: -0.02em;
+  /* Tighter tracking for large headings */
+}
+
+/* Enhancements for Minimalist Look */
+.text-gold {
+  color: var(--gold);
+}
+
+.bg-black-rich {
+  background-color: var(--color-black-rich);
+}
+
+.text-creme {
+  color: var(--color-creme);
+}
+
+/* Override existing dark classes to fit light theme context where needed */
+.dark-section {
+  background-color: var(--color-black-rich);
+  color: var(--color-creme);
+}
