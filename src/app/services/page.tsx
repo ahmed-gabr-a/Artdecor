@@ -1,43 +1,44 @@
-import { Paintbrush, Home, Building2, Sofa, TreePine, HardHat } from "lucide-react";
+
 import FadeIn from "@/components/FadeIn";
+import { Paintbrush, Ruler, Sofa, HardHat, Lightbulb, ChefHat } from "lucide-react";
 
-const services = [
-    {
-        icon: Home,
-        title: "Residential Design",
-        description: "Tailored interiors for homes that blend comfort with sophisticated style.",
-    },
-    {
-        icon: Building2,
-        title: "Commercial Spaces",
-        description: "Innovative designs for offices and retail that enhance brand identity and productivity.",
-    },
-    {
-        icon: HardHat,
-        title: "Fit-out & Execution",
-        description: "Turnkey solutions ensuring quality craftsmanship from concept to handover.",
-    },
-    {
-        icon: Sofa,
-        title: "Custom Furniture",
-        description: "Bespoke furniture pieces designed specifically for your space and needs.",
-    },
-    {
-        icon: Paintbrush,
-        title: "Design Consultation",
-        description: "Expert advice on color palettes, layouts, and styling to refine your vision.",
-    },
-    {
-        icon: TreePine,
-        title: "Landscape Design",
-        description: "Harmonizing indoor and outdoor living with thoughtful landscape architecture.",
-    },
-];
+export default function Services() {
+    const services = [
+        {
+            icon: Paintbrush,
+            title: "Interior Design",
+            description: "Conceptualizing and crafting bespoke interiors that reflect your personality and lifestyle."
+        },
+        {
+            icon: Ruler,
+            title: "Architectural Planning",
+            description: "Detailed spatial planning and blueprints to optimize every inch of your property."
+        },
+        {
+            icon: Sofa,
+            title: "Furniture Selection",
+            description: "Curating luxury furniture pieces that blend comfort with sophisticated aesthetics."
+        },
+        {
+            icon: HardHat,
+            title: "Project Management",
+            description: "End-to-end supervision of the execution process to ensure quality and timeliness."
+        },
+        {
+            icon: Lightbulb,
+            title: "Lighting Design",
+            description: "Strategic lighting solutions to enhance mood, ambiance, and functionality."
+        },
+        {
+            icon: ChefHat,
+            title: "Restaurant Fit-outs",
+            description: "Specialized design and execution for high-end dining establishments."
+        }
+    ];
 
-export default function ServicesPage() {
     return (
-        <main className="min-h-screen bg-creme text-black-rich py-24 px-6 md:px-12">
-            <div className="container mx-auto max-w-6xl">
+        <div className="min-h-screen bg-white py-24 px-6 md:px-12">
+            <div className="container mx-auto max-w-7xl">
                 <FadeIn>
                     <h1 className="text-5xl md:text-7xl font-serif text-center mb-6">Our Services</h1>
                     <p className="text-center text-gray-600 max-w-2xl mx-auto mb-20 text-lg font-light">
@@ -52,10 +53,12 @@ export default function ServicesPage() {
                             <FadeIn
                                 key={index}
                                 delay={index * 0.1}
-                                className="group p-8 bg-white border border-gray-100 hover:shadow-lg transition-all duration-300 text-left"
+                                className="group p-8 bg-white border border-gray-100 hover:shadow-lg transition-all duration-300 text-left hover:-translate-y-1"
                             >
-                                <div className="w-12 h-12 flex items-center justify-center mb-6 text-black-rich group-hover:text-gold transition-colors">
-                                    <Icon size={32} strokeWidth={1.5} />
+                                <div className="w-12 h-12 flex items-center justify-center mb-6 text-black-rich group-hover:text-gold transition-colors duration-300">
+                                    <div className="transform transition-transform duration-500 group-hover:rotate-[360deg] group-hover:scale-110">
+                                        <Icon size={32} strokeWidth={1.5} />
+                                    </div>
                                 </div>
                                 <h3 className="text-2xl font-serif mb-4 group-hover:text-gold transition-colors">
                                     {service.title}
@@ -68,6 +71,6 @@ export default function ServicesPage() {
                     })}
                 </div>
             </div>
-        </main>
+        </div>
     );
 }

@@ -1,12 +1,9 @@
 
-import { Mail, Phone, MapPin } from "lucide-react";
-import ContactForm from "./contact-form"; // We'll extract the form to a client component
-import { getContent } from "@/lib/content";
 import FadeIn from "@/components/FadeIn";
+import ContactForm from "./contact-form";
+import { Mail, Phone, MapPin } from "lucide-react";
 
-export default async function ContactPage() {
-    const content = await getContent();
-
+export default function ContactPage() {
     return (
         <main className="min-h-screen bg-creme text-black-rich py-24 px-6 md:px-12">
             <div className="container mx-auto max-w-7xl">
@@ -27,21 +24,21 @@ export default async function ContactPage() {
                                 <Mail className="w-6 h-6 mt-1 text-gold-dark" />
                                 <div>
                                     <h3 className="font-serif text-xl mb-1">Email</h3>
-                                    <p className="text-gray-600">{content.contact_email || "hello@artdecor.com"}</p>
+                                    <p className="text-gray-600">hello@artdecor.com</p>
                                 </div>
                             </FadeIn>
                             <FadeIn delay={0.3} className="flex items-start space-x-6">
                                 <Phone className="w-6 h-6 mt-1 text-gold-dark" />
                                 <div>
                                     <h3 className="font-serif text-xl mb-1">Phone</h3>
-                                    <p className="text-gray-600">{content.contact_phone || "+20 100 123 4567"}</p>
+                                    <p className="text-gray-600">+20 100 123 4567</p>
                                 </div>
                             </FadeIn>
                             <FadeIn delay={0.4} className="flex items-start space-x-6">
                                 <MapPin className="w-6 h-6 mt-1 text-gold-dark" />
                                 <div>
                                     <h3 className="font-serif text-xl mb-1">Studio</h3>
-                                    <p className="text-gray-600">{content.contact_address || "123 Design Avenue, New Cairo, Egypt"}</p>
+                                    <p className="text-gray-600">New Cairo, Egypt</p>
                                 </div>
                             </FadeIn>
                         </div>

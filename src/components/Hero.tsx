@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 
-export default function Hero({ title, subtitle }: { title?: string, subtitle?: string }) {
+export default function Hero({ title, subtitle, videoUrl }: { title?: string, subtitle?: string, videoUrl?: string }) {
     return (
         <section className="relative h-screen w-full overflow-hidden">
             {/* Video Background */}
@@ -13,7 +13,7 @@ export default function Hero({ title, subtitle }: { title?: string, subtitle?: s
                 playsInline
                 className="absolute top-0 left-0 min-w-full min-h-full object-cover z-0"
             >
-                <source src="/assets/videos/hero-bg.mp4" type="video/mp4" />
+                <source src={videoUrl || "/assets/videos/hero-bg.mp4"} type="video/mp4" />
                 Your browser does not support the video tag.
             </video>
 

@@ -1,65 +1,54 @@
 
+import { getServerSession } from "next-auth";
+import { supabase } from "@/lib/supabase";
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-import { writeFile } from "fs/promises";
-import path from "path";
+import { authOptions } from "../auth/[...nextauth]/route";
 
-const prisma = new PrismaClient(); // In prod, use singleton pattern
 
+// GET /api/projects - List all projects
 export async function GET() {
+    // Try Supabase first
     try {
-        const projects = await prisma.project.findMany({
-            orderBy: { createdAt: "desc" },
-        });
-        return NextResponse.json(projects);
-    } catch (error) {
-        return NextResponse.json({ error: "Failed to fetch projects" }, { status: 500 });
-    }
-}
-
-export async function POST(request: Request) {
-    try {
-        const formData = await request.formData();
-        const title = formData.get("title") as string;
-        const description = formData.get("description") as string;
-        const details = formData.get("details") as string;
-        const category = formData.get("category") as string;
-        const year = formData.get("year") as string;
-        const location = formData.get("location") as string;
-        const imageFile = formData.get("image") as File;
-
-        if (!imageFile) {
-            return NextResponse.json({ error: "Image is required" }, { status: 400 });
+        if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
+            const { data, error } = await supabase.from("projects").select("*").order("created_at", { ascending: false });
+            if (!error && data && data.length > 0) return NextResponse.json(data);
         }
+    } catch (e) { }
 
-        // Save image
-        const bytes = await imageFile.arrayBuffer();
-        const buffer = Buffer.from(bytes);
-
-        // Create unique filename
-        const filename = `${Date.now()}-${imageFile.name.replace(/\s/g, '-')}`;
-        const uploadDir = path.join(process.cwd(), "public/assets/images/projects");
-        const filepath = path.join(uploadDir, filename);
-
-        await writeFile(filepath, buffer as any);
-
-        const imageUrl = `/assets/images/projects/${filename}`;
-
-        const project = await prisma.project.create({
-            data: {
-                title,
-                description,
-                details,
-                category,
-                year,
-                location,
-                image: imageUrl,
-            },
-        });
-
-        return NextResponse.json(project);
-    } catch (error) {
-        console.error("Upload error:", error);
-        return NextResponse.json({ error: "Failed to create project" }, { status: 500 });
-    }
+    // Fallback to Local DB
+    const { readLocalProjects } = await import('@/lib/json-db');
+    const localData = await readLocalProjects();
+    return NextResponse.json(localData);
 }
+
+// POST /api/projects - Create new project
+export async function POST(request: Request) {
+    const session = await getServerSession(authOptions);
+    // if (!session) {
+    //     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // }
+
+    const body = await request.json();
+    const { title, category, image, description, details, year, location } = body;
+
+    // Try Supabase
+    try {
+        if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
+            const { data, error } = await supabase.from("projects").insert([{
+                title, category, image_url: image, description, details, year, location
+            }]).select();
+            if (!error && data) return NextResponse.json(data[0]);
+        }
+    } catch (e) { }
+
+    // Fallback to Local DB
+    const { writeLocalProject } = await import('@/lib/json-db');
+    const newProject = await writeLocalProject({
+        id: 'new',
+        title, category, image, description, details, year, location,
+        gallery: [], videos: []
+    } as any);
+
+    return NextResponse.json(newProject);
+}
+

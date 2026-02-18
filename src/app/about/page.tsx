@@ -1,62 +1,54 @@
-import Image from "next/image";
-import { getContent } from "@/lib/content";
-import FadeIn from "@/components/FadeIn";
 
-export default async function AboutPage() {
-    const content = await getContent();
+import FadeIn from "@/components/FadeIn";
+import { getContent } from "@/lib/supabase-data";
+
+export const revalidate = 0;
+
+export default async function About() {
+    // We could fetch this from Supabase content_blocks if populated
+    // const aboutText = await getContent('about_mission');
+
     return (
-        <main className="min-h-screen bg-creme text-black-rich py-24 px-6 md:px-12">
-            <div className="container mx-auto max-w-7xl">
-                {/* Hero Section */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center mb-24">
-                    <FadeIn direction="right" className="space-y-6 text-left">
-                        <h1 className="text-5xl md:text-7xl font-serif leading-tight">
-                            {content.about_title || "Crafting Legacy."}
-                        </h1>
-                        <p className="text-lg text-gray-600 leading-relaxed whitespace-pre-line">
-                            {content.about_text || "Founded on the principles of timeless elegance and functional luxury, Art Decor has been transforming spaces for over a decade. We believe that every interior should tell a unique story—yours."}
+        <div className="min-h-screen bg-creme py-24 px-6 md:px-12">
+            <div className="container mx-auto max-w-5xl">
+                <FadeIn>
+                    <h1 className="text-5xl md:text-7xl font-serif mb-12 text-center md:text-left">Who We Are</h1>
+                </FadeIn>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+                    <FadeIn delay={0.2} className="space-y-6 text-lg font-light text-gray-600 leading-relaxed text-left">
+                        <p>
+                            Art Decor is a premier interior design studio based in Cairo, dedicated to creating spaces that tell a story. We believe that luxury lies in the details and that every environment should be a reflection of those who inhabit it.
+                        </p>
+                        <p>
+                            With over a decade of experience in residential, commercial, and hospitality projects, our team combines architectural precision with artistic flair. From classic opulence to modern minimalism, we navigate diverse styles with ease.
                         </p>
                     </FadeIn>
-                    <FadeIn direction="left" className="relative h-[500px] w-full bg-gray-200">
-                        {/* Placeholder for About Image - could be office interior or team */}
-                        <div className="absolute inset-0 flex items-center justify-center text-gray-400 font-light">
-                            About Image Placeholder
+
+                    <FadeIn delay={0.4} direction="left">
+                        <div className="aspect-square bg-gray-200 relative overflow-hidden rounded-lg">
+                            {/* Placeholder for About Image - could be fetched */}
+                            <div className="absolute inset-0 bg-neutral-800 flex items-center justify-center text-white/20 font-serif text-4xl">
+                                Art Decor Studio
+                            </div>
                         </div>
                     </FadeIn>
                 </div>
 
-                {/* Values Section */}
-                <div className="border-t border-black pt-16 mb-24">
-                    <FadeIn>
-                        <h2 className="text-3xl font-serif mb-12 text-left">Our Philosophy</h2>
-                    </FadeIn>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-left">
-                        <FadeIn delay={0.1} className="space-y-4">
-                            <h3 className="text-xl font-serif">Innovation</h3>
-                            <p className="text-gray-600 text-sm">Constantly exploring new materials and techniques to push the boundaries of design.</p>
+                {/* Values */}
+                <div className="mt-24 grid grid-cols-1 md:grid-cols-3 gap-8">
+                    {[
+                        { title: "Precision", text: "Attention to the smallest detail ensures perfection." },
+                        { title: "Innovation", text: "Pushing boundaries to create unique concepts." },
+                        { title: "Integrity", text: "Transparent processes and honest communication." }
+                    ].map((val, i) => (
+                        <FadeIn key={i} delay={0.5 + (i * 0.1)} className="bg-white p-8 border-t-2 border-gold text-left">
+                            <h3 className="text-xl font-serif mb-3">{val.title}</h3>
+                            <p className="text-gray-500 font-light text-sm">{val.text}</p>
                         </FadeIn>
-                        <FadeIn delay={0.2} className="space-y-4">
-                            <h3 className="text-xl font-serif">Precision</h3>
-                            <p className="text-gray-600 text-sm">Obsessive attention to detail in every joinery, stitch, and finish.</p>
-                        </FadeIn>
-                        <FadeIn delay={0.3} className="space-y-4">
-                            <h3 className="text-xl font-serif">Collaboration</h3>
-                            <p className="text-gray-600 text-sm">Working closely with clients to ensure their vision is realized beyond expectations.</p>
-                        </FadeIn>
-                    </div>
+                    ))}
                 </div>
-
-                {/* Team/Process/History Placeholder */}
-                <FadeIn className="bg-white p-12 md:p-24 text-center">
-                    <h2 className="text-4xl font-serif mb-6">Let's Create Something Beautiful</h2>
-                    <p className="text-gray-600 max-w-2xl mx-auto mb-10">
-                        Whether you're looking to refresh a single room or redesign an entire property, our team is ready to bring your vision to life.
-                    </p>
-                    <a href="/contact" className="inline-block border-b border-black pb-1 hover:text-gold hover:border-gold transition-colors text-lg">
-                        Get in Touch
-                    </a>
-                </FadeIn>
             </div>
-        </main>
+        </div>
     );
 }

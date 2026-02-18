@@ -7,11 +7,13 @@ import Link from "next/link";
 import { categories } from "@/lib/data";
 
 type Project = {
-    id: number;
+    id: string | number;
     title: string;
     category: string;
     image: string;
     description: string;
+    gallery?: string[];
+    videos?: string[];
 };
 
 export default function PortfolioGallery({ projects }: { projects: Project[] }) {
@@ -61,24 +63,26 @@ export default function PortfolioGallery({ projects }: { projects: Project[] }) 
                             transition={{ duration: 0.4, ease: "easeOut" }}
                             className="group relative aspect-[4/5] overflow-hidden bg-gray-100 cursor-pointer"
                         >
-                            <Image
-                                src={project.image}
-                                alt={project.title}
-                                fill
-                                className="object-cover transition-transform duration-700 group-hover:scale-105"
-                            />
-                            {/* Minimalist Hover Overlay */}
-                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-8">
-                                <div className="transform translate-y-8 group-hover:translate-y-0 transition-transform duration-500 delay-100 ease-out">
-                                    <h3 className="text-2xl font-serif text-white mb-2">{project.title}</h3>
-                                    <p className="text-gray-200 text-sm mb-6 line-clamp-2 opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-200">
-                                        {project.description}
-                                    </p>
-                                    <span className="inline-block text-white border-b border-white pb-1 text-sm tracking-widest hover:text-gold hover:border-gold transition-colors duration-300">
-                                        VIEW PROJECT
-                                    </span>
+                            <Link href={`/portfolio/${project.id}`} className="block w-full h-full relative">
+                                <Image
+                                    src={project.image}
+                                    alt={project.title}
+                                    fill
+                                    className="object-cover transition-transform duration-700 group-hover:scale-105"
+                                />
+                                {/* Minimalist Hover Overlay */}
+                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-8">
+                                    <div className="transform translate-y-8 group-hover:translate-y-0 transition-transform duration-500 delay-100 ease-out">
+                                        <h3 className="text-2xl font-serif text-white mb-2">{project.title}</h3>
+                                        <p className="text-gray-200 text-sm mb-6 line-clamp-2 opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-200">
+                                            {project.description}
+                                        </p>
+                                        <span className="inline-block text-white border-b border-white pb-1 text-sm tracking-widest hover:text-gold hover:border-gold transition-colors duration-300">
+                                            VIEW PROJECT
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
+                            </Link>
                         </motion.div>
                     ))}
                 </AnimatePresence>

@@ -52,17 +52,19 @@ export default function Navbar() {
                         <Link
                             key={link.name}
                             href={link.href}
-                            className={`text-sm uppercase tracking-widest transition-colors duration-300 ${pathname === link.href
-                                ? "text-black-rich font-semibold border-b border-black-rich"
+                            className={`text-sm uppercase tracking-widest transition-colors duration-300 relative group ${pathname === link.href
+                                ? "text-black-rich font-semibold"
                                 : "text-gray-600 hover:text-black-rich"
                                 }`}
                         >
                             {link.name}
+                            <span className={`absolute left-0 bottom-0 w-full h-0.5 bg-black-rich transform origin-left transition-transform duration-300 ${pathname === link.href ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
+                                }`} />
                         </Link>
                     ))}
                     <Link
                         href="/contact"
-                        className="bg-black-rich text-white px-5 py-2 text-sm uppercase tracking-wider hover:bg-gray-800 transition-colors"
+                        className="bg-black-rich text-white px-5 py-2 text-sm uppercase tracking-wider hover:bg-gray-800 transition-all active:scale-95 duration-200"
                     >
                         Book Now
                     </Link>

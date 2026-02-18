@@ -1,96 +1,88 @@
 
+import { getServerSession } from "next-auth";
+import { supabase } from "@/lib/supabase";
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { authOptions } from "../../auth/[...nextauth]/route";
 
-const prisma = new PrismaClient();
 
-export async function GET(
-    request: Request,
-    { params }: { params: Promise<{ id: string }> }
-) {
+
+// GET /api/projects/[id] - Get project details
+export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
+    const { id } = await context.params;
+
+    // Try Supabase first
     try {
-        const { id } = await params;
-        const project = await prisma.project.findUnique({
-            where: { id: parseInt(id) },
-        });
-
-        if (!project) {
-            return NextResponse.json({ error: "Project not found" }, { status: 404 });
+        if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
+            const { data, error } = await supabase
+                .from("projects")
+                .select("*")
+                .eq("id", id)
+                .single();
+            if (!error && data) return NextResponse.json(data);
         }
+    } catch (e) { }
 
-        return NextResponse.json(project);
-    } catch (error) {
-        return NextResponse.json({ error: "Failed to fetch project" }, { status: 500 });
+    // Fallback Local DB
+    const { readLocalProjects } = await import('@/lib/json-db');
+    const localProjects = await readLocalProjects();
+    const project = localProjects.find((p: any) => p.id.toString() === id.toString());
+
+    if (!project) {
+        return NextResponse.json({ error: "Project not found" }, { status: 404 });
     }
+
+    return NextResponse.json(project);
 }
 
-export async function PUT(
-    request: Request,
-    { params }: { params: Promise<{ id: string }> }
-) {
+// PUT /api/projects/[id] - Update project
+export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
+    const session = await getServerSession(authOptions);
+    // if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const { id } = await context.params;
+    const body = await request.json();
+    const { title, category, image, description, details, year, location } = body;
+
+    // Try Supabase
     try {
-        const { id } = await params;
-        const formData = await request.formData();
-
-        const title = formData.get("title") as string;
-        const description = formData.get("description") as string;
-        const details = formData.get("details") as string;
-        const category = formData.get("category") as string;
-        const year = formData.get("year") as string;
-        const location = formData.get("location") as string;
-        const imageFile = formData.get("image") as File | null;
-
-        const dataToUpdate: any = {
-            title,
-            description,
-            details,
-            category,
-            year,
-            location,
-        };
-
-        if (imageFile) {
-            const buffer = Buffer.from(await imageFile.arrayBuffer());
-            const filename = Date.now() + "_" + imageFile.name.replaceAll(" ", "_");
-
-            // In a real app, you'd upload to S3 or similar. Here we save locally.
-            // Note: Saving to public folder in production/Vercel won't persist.
-            // But for local VPS or dev, it works.
-            const fs = require('fs');
-            const path = require('path');
-            const uploadDir = path.join(process.cwd(), "public/assets/images/projects");
-
-            if (!fs.existsSync(uploadDir)) {
-                fs.mkdirSync(uploadDir, { recursive: true });
-            }
-
-            fs.writeFileSync(path.join(uploadDir, filename), buffer);
-            dataToUpdate.image = `/assets/images/projects/${filename}`;
+        if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
+            const { data, error } = await supabase
+                .from("projects")
+                .update({ title, category, image_url: image, description, details, year, location })
+                .eq("id", id)
+                .select();
+            if (!error && data) return NextResponse.json(data[0]);
         }
+    } catch (e) { }
 
-        const project = await prisma.project.update({
-            where: { id: parseInt(id) },
-            data: dataToUpdate,
-        });
+    // Fallback Local DB
+    const { writeLocalProject } = await import('@/lib/json-db');
+    const updated = await writeLocalProject({
+        id, title, category, image, description, details, year, location,
+        gallery: [], videos: []
+    } as any);
 
-        return NextResponse.json(project);
-    } catch (error) {
-        console.error("Update error:", error);
-        return NextResponse.json({ error: "Failed to update project" }, { status: 500 });
-    }
+    return NextResponse.json(updated);
 }
 
-export async function DELETE(
-    request: Request,
-    { params }: { params: Promise<{ id: string }> }
-) {
+// DELETE /api/projects/[id] - Delete project
+export async function DELETE(request: Request, context: { params: Promise<{ id: string }> }) {
+    const session = await getServerSession(authOptions);
+    // if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const { id } = await context.params;
+
+    // Try Supabase
     try {
-        const { id } = await params;
-        await prisma.project.delete({
-            where: { id: parseInt(id) },
-        });
-        return NextResponse.json({ success: true });
-    } catch (error) {
-        return NextResponse.json({ error: "Failed to delete project" }, { status: 500 });
-    }
+        if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
+            await supabase.from("projects").delete().eq("id", id);
+        }
+    } catch (e) { }
+
+    // Fallback Local DB
+    const { deleteLocalProject } = await import('@/lib/json-db');
+    await deleteLocalProject(id);
+
+    return NextResponse.json({ success: true });
 }
+

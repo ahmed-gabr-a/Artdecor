@@ -1,126 +1,140 @@
 
-import Image from "next/image";
+import { getProject } from "@/lib/supabase-data";
 import Link from "next/link";
-import { ArrowLeft, Calendar, MapPin, Tag } from "lucide-react";
-import { PrismaClient } from "@prisma/client";
-import { notFound } from "next/navigation";
+import { ArrowLeft, MapPin, Calendar, CheckCircle, Smartphone } from "lucide-react";
+import FadeIn from "@/components/FadeIn";
 
-const prisma = new PrismaClient();
+export const revalidate = 0;
 
-export default async function ProjectDetails({
-    params,
-}: {
-    params: Promise<{ id: string }>;
-}) {
+export default async function ProjectDetails({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
-    const project = await prisma.project.findUnique({
-        where: { id: parseInt(id) },
-    });
+    const project = await getProject(id);
 
     if (!project) {
-        notFound();
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="text-center">
+                    <h1 className="text-4xl text-gold font-serif mb-4">Project Not Found</h1>
+                    <Link href="/portfolio" className="text-gray-500 hover:text-black hover:underline">
+                        Back to Portfolio
+                    </Link>
+                </div>
+            </div>
+        );
     }
 
-    // Related projects (same category, exclude current)
-    const relatedProjects = await prisma.project.findMany({
-        where: {
-            category: project.category,
-            id: { not: project.id },
-        },
-        take: 3,
-    });
-
     return (
-        <main className="min-h-screen bg-white text-black-rich py-24 px-6 md:px-12">
-            <div className="container mx-auto max-w-7xl">
-                <Link
-                    href="/portfolio"
-                    className="inline-flex items-center text-gray-500 mb-8 hover:text-black transition-colors text-sm uppercase tracking-widest"
-                >
-                    <ArrowLeft className="mr-2" size={16} /> Back to Portfolio
-                </Link>
-
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-                    {/* Images Section - 8 Columns */}
-                    <div className="lg:col-span-8 space-y-8">
-                        <div className="relative aspect-[16/10] w-full bg-gray-100 overflow-hidden">
-                            <Image
-                                src={project.image}
-                                alt={project.title}
-                                fill
-                                className="object-cover"
-                            />
-                        </div>
-                        {/* If we had more images, they would go here in a masonry or grid */}
-                    </div>
-
-                    {/* Details Section - 4 Columns */}
-                    <div className="lg:col-span-4 lg:sticky lg:top-24 h-fit">
-                        <h1 className="text-4xl md:text-5xl font-serif text-black-rich mb-8 leading-tight">
-                            {project.title}
-                        </h1>
-
-                        <div className="space-y-6 border-t border-gray-200 pt-8 mb-8">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <span className="block text-xs uppercase tracking-widest text-gray-400 mb-1">Category</span>
-                                    <span className="text-lg font-serif">{project.category}</span>
-                                </div>
-                                <div>
-                                    <span className="block text-xs uppercase tracking-widest text-gray-400 mb-1">Year</span>
-                                    <span className="text-lg font-serif">{project.year}</span>
-                                </div>
-                                <div className="col-span-2">
-                                    <span className="block text-xs uppercase tracking-widest text-gray-400 mb-1">Location</span>
-                                    <span className="text-lg font-serif">{project.location}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="prose prose-lg prose-neutral mb-12 font-light text-gray-600">
-                            <h3 className="font-serif text-black-rich text-xl mb-4">About the Project</h3>
-                            <p className="leading-relaxed">
-                                {project.details || project.description}
-                            </p>
-                        </div>
-
-                        <Link
-                            href="/contact"
-                            className="block w-full text-center bg-black-rich text-white px-8 py-4 uppercase tracking-widest hover:bg-gray-800 transition-colors"
-                        >
-                            Inquire About This Look
+        <main className="min-h-screen bg-white">
+            {/* Hero Image */}
+            <div className="h-[60vh] md:h-[80vh] relative w-full bg-gray-200">
+                <img
+                    src={project.image}
+                    alt={project.title}
+                    className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-black/30" />
+                <div className="absolute bottom-0 left-0 w-full p-8 md:p-16 bg-gradient-to-t from-black/80 to-transparent">
+                    <div className="container mx-auto">
+                        <Link href="/portfolio" className="inline-flex items-center text-white/80 hover:text-white mb-6 transition-colors">
+                            <ArrowLeft size={20} className="mr-2" />
+                            Back to Portfolio
                         </Link>
+                        <h1 className="text-4xl md:text-6xl font-serif text-white mb-2">{project.title}</h1>
+                        <span className="text-gold uppercase tracking-widest text-sm">{project.category}</span>
                     </div>
                 </div>
+            </div>
 
-                {/* Related Projects */}
-                {relatedProjects.length > 0 && (
-                    <div className="mt-32 border-t border-gray-200 pt-16">
-                        <div className="flex justify-between items-end mb-12">
-                            <h2 className="text-3xl font-serif">You May Also Like</h2>
-                            <Link href="/portfolio" className="hidden md:inline-block border-b border-black pb-1 hover:text-gray-600 hover:border-gray-600 transition-colors">
-                                View Full Portfolio
-                            </Link>
-                        </div>
+            <div className="container mx-auto max-w-5xl py-24 px-6 md:px-12">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-16">
+                    {/* Details Sidebar */}
+                    <div className="md:col-span-1 space-y-8">
+                        <FadeIn>
+                            <div className="border-t border-gold pt-6">
+                                <div className="flex items-center space-x-3 text-gold mb-2">
+                                    <MapPin size={20} />
+                                    <span className="uppercase tracking-widest text-xs font-bold">Location</span>
+                                </div>
+                                <p className="text-gray-600 font-light">{project.location}</p>
+                            </div>
+                        </FadeIn>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                            {relatedProjects.map((p) => (
-                                <Link key={p.id} href={`/portfolio/${p.id}`} className="group block">
-                                    <div className="relative aspect-[4/5] bg-gray-100 overflow-hidden mb-4">
-                                        <Image
-                                            src={p.image}
-                                            alt={p.title}
-                                            fill
-                                            className="object-cover group-hover:scale-105 transition-transform duration-700"
-                                        />
+                        <FadeIn delay={0.1}>
+                            <div className="border-t border-gold pt-6">
+                                <div className="flex items-center space-x-3 text-gold mb-2">
+                                    <Calendar size={20} />
+                                    <span className="uppercase tracking-widest text-xs font-bold">Year</span>
+                                </div>
+                                <p className="text-gray-600 font-light">{project.year}</p>
+                            </div>
+                        </FadeIn>
+
+                        <FadeIn delay={0.2}>
+                            <div className="bg-creme p-6 rounded-lg">
+                                <h3 className="font-serif text-lg mb-4">Project Highlights</h3>
+                                <div className="space-y-2">
+                                    <div className="flex items-start space-x-2 text-sm text-gray-600">
+                                        <CheckCircle size={16} className="text-gold mt-0.5 shrink-0" />
+                                        <span>Premium Materials</span>
                                     </div>
-                                    <h3 className="text-xl font-serif text-black-rich group-hover:text-gray-600 transition-colors">{p.title}</h3>
-                                    <p className="text-gray-400 text-sm uppercase tracking-wider mt-1">{p.category}</p>
-                                </Link>
-                            ))}
-                        </div>
+                                    <div className="flex items-start space-x-2 text-sm text-gray-600">
+                                        <CheckCircle size={16} className="text-gold mt-0.5 shrink-0" />
+                                        <span>Custom Furniture</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </FadeIn>
                     </div>
-                )}
+
+                    {/* Main Content */}
+                    <div className="md:col-span-2 space-y-12">
+                        <FadeIn delay={0.3} className="text-lg leading-relaxed text-gray-600 font-light">
+                            <h3 className="text-2xl font-serif text-black-rich mb-4">Concept</h3>
+                            <p className="mb-8">{project.description}</p>
+
+                            <h3 className="text-2xl font-serif text-black-rich mb-4">Execution Details</h3>
+                            <div
+                                className="prose prose-gold max-w-none text-gray-600 font-light"
+                                dangerouslySetInnerHTML={{ __html: project.details }}
+                            />
+                        </FadeIn>
+
+                        {/* Video Gallery */}
+                        {project.videos && project.videos.length > 0 && (
+                            <div className="mt-12 space-y-8">
+                                <h3 className="text-2xl font-serif text-black-rich">Project Videos</h3>
+                                <div className="grid grid-cols-1 gap-6">
+                                    {project.videos.map((vid, i) => (
+                                        <div key={i} className="aspect-video bg-black rounded-lg overflow-hidden shadow-lg">
+                                            <video controls className="w-full h-full">
+                                                <source src={vid} type="video/mp4" />
+                                                Your browser does not support the video tag.
+                                            </video>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Image Gallery */}
+                        {project.gallery && project.gallery.length > 0 && (
+                            <div className="mt-12">
+                                <h3 className="text-2xl font-serif text-black-rich mb-8">Gallery</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {project.gallery.map((img, index) => (
+                                        <div key={index} className="aspect-[4/3] bg-gray-100 rounded overflow-hidden cursor-pointer group">
+                                            <img
+                                                src={img}
+                                                alt={`${project.title} - ${index}`}
+                                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
             </div>
         </main>
     );

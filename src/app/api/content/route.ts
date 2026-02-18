@@ -1,47 +1,83 @@
-import { PrismaClient } from "@prisma/client";
-import { NextResponse } from "next/server";
 
-const prisma = new PrismaClient();
+import { supabase } from '@/lib/supabase';
+import { NextResponse } from 'next/server';
+import { siteContentSchema } from '@/lib/site-content';
+
+
+
 
 export async function GET(request: Request) {
+    const { searchParams } = new URL(request.url);
+    const mode = searchParams.get('mode');
+
+    // 1. Fetch values from DB (Supabase or Local)
+    let values: Record<string, string> = {};
+
+    // Try Supabase first
     try {
-        const { searchParams } = new URL(request.url);
-        const mode = searchParams.get("mode");
-
-        const content = await prisma.contentBlock.findMany();
-
-        if (mode === "admin") {
-            return NextResponse.json(content);
+        if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
+            const { data, error } = await supabase.from('content_blocks').select('*');
+            if (!error && data) {
+                values = data.reduce((acc: any, item: any) => {
+                    acc[item.key] = item.content;
+                    return acc;
+                }, {});
+            }
         }
-
-        // Convert array to object for easier frontend access: { key: value }
-        const contentMap = content.reduce((acc: Record<string, string>, item: { key: string; value: string }) => {
-            acc[item.key] = item.value;
-            return acc;
-        }, {} as Record<string, string>);
-
-        return NextResponse.json(contentMap);
-    } catch (error) {
-        return NextResponse.json({ error: "Failed to fetch content" }, { status: 500 });
+    } catch (e) {
+        // Ignore supabase errors
     }
+
+    // If Supabase empty or failed, try Local DB
+    if (Object.keys(values).length === 0) {
+        const { readLocalContent } = await import('@/lib/json-db');
+        values = await readLocalContent();
+    }
+
+    // 2. Merge with Schema
+    // We always return the full schema structure so the Admin UI knows what to render.
+    // The 'value' for each item is: DB value > Local Value > Default Value
+    const fullContent = siteContentSchema.map(item => ({
+        ...item,
+        value: values[item.key] || item.defaultValue
+    }));
+
+    if (mode === 'admin') {
+        return NextResponse.json(fullContent);
+    }
+
+    // Front-end friendly object { key: value }
+    const contentMap = fullContent.reduce((acc: any, item: any) => {
+        acc[item.key] = item.value;
+        return acc;
+    }, {});
+
+    return NextResponse.json(contentMap);
 }
 
 export async function PUT(request: Request) {
+    const body = await request.json();
+    const { key, value } = body;
+
+    // Try Supabase
+    let supabaseSuccess = false;
     try {
-        const body = await request.json();
-        const { key, value } = body;
-
-        if (!key || value === undefined) {
-            return NextResponse.json({ error: "Missing key or value" }, { status: 400 });
+        if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
+            const { error } = await supabase
+                .from('content_blocks')
+                .upsert({ key, content: value }, { onConflict: 'key' }); // content not value
+            if (!error) supabaseSuccess = true;
         }
+    } catch (e) { }
 
-        const updated = await prisma.contentBlock.update({
-            where: { key },
-            data: { value },
-        });
-
-        return NextResponse.json(updated);
-    } catch (error) {
-        return NextResponse.json({ error: "Failed to update content" }, { status: 500 });
+    // Always save to Local DB as backup/primary for local user
+    try {
+        const { writeLocalContent } = await import('@/lib/json-db');
+        await writeLocalContent(key, value);
+    } catch (e) {
+        console.error("Local save failed", e);
     }
+
+    return NextResponse.json({ success: true, supabase: supabaseSuccess });
 }
+
